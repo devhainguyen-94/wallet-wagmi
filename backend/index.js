@@ -14,7 +14,6 @@ app.use(cors())
 app.use(express.json())
 
 app.get('/api/auth/nonce', (req, res) => {
-  console.log('req demo is:',req)
   const address = req.query.address
   const nonce = generateNonce()
   nonces.set(address, nonce)

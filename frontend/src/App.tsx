@@ -5,7 +5,7 @@ import { publicProvider } from 'wagmi/providers/public'
 import { ConnectKitProvider, getDefaultConfig } from 'connectkit'
 import { createClient } from 'viem'
 import { useAuth } from './hooks/useAuth'
-
+import React from 'react';
 const config = createConfig(
   getDefaultConfig({
     chains: [mainnet],
@@ -16,20 +16,16 @@ const config = createConfig(
 
 function App() {
   const { login, loading, address } = useAuth()
-  console.log( login);
+  console.log(login);
   return (
-    <WagmiConfig config={config}>
-      <ConnectKitProvider>
-        <div style={{ padding: 24 }}>
-          <h1>Login with Wallet</h1>
-          <p>Address: {address}</p>
-          <button onClick={login} disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </div>
-      </ConnectKitProvider>
-    </WagmiConfig>
-  )
+    <div style={{ padding: 24 }}>
+      <h1>Login with Wallet</h1>
+      <p>Address: {address}</p>
+      <button onClick={login} disabled={loading}>
+        {loading ? 'Logging in...' : 'Login'}
+      </button>
+    </div>
+  );
 }
 
 export default App
