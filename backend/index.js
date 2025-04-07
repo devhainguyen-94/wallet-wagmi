@@ -9,7 +9,32 @@ const app = express()
 const PORT = 3001
 const JWT_SECRET = 'your-secret'
 const nonces = new Map()
+app.use(express.json())
 
+const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`)
+
+app.post('/send-transaction', async (req, res) => {
+  const { fromAddress, toAddress, amount } = req.body
+
+  try {
+    const wallet = await prisma.wallet.findUnique({
+      where: { address: fromAddress.toLowerCase() },
+    })
+
+    if (!wallet) return res.status(404).json({ error: 'Wallet not found' })
+
+    const signer = new ethers.Wallet(wallet.privateKey, provider)
+    const tx = await signer.sendTransaction({
+      to: toAddress,
+      value: ethers.parseEther(amount),
+    })
+
+    return res.json({ txHash: tx.hash })
+  } catch (err) {
+    console.error('Send TX error:', err)
+    res.status(500).json({ error: 'Transaction failed', details: err.message })
+  }
+})
 app.use(cors())
 app.use(express.json())
 
