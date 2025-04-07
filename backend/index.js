@@ -4,7 +4,7 @@ import cors from 'cors'
 import jwt from 'jsonwebtoken'
 import { verifyMessage } from 'viem'
 import { generateNonce } from 'siwe'
-
+import { createWallet } from './controllers/walletController.js';
 const app = express()
 const PORT = 3001
 const JWT_SECRET = 'your-secret'
@@ -20,6 +20,7 @@ app.get('/api/auth/nonce', (req, res) => {
   res.json({ nonce })
 })
 
+app.post('/api/auth/create-wallet',createWallet)
 app.post('/api/auth/verify', async (req, res) => {
   const { address, signature } = req.body
   const nonce = nonces.get(address)
