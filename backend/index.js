@@ -6,10 +6,13 @@ import { verifyMessage } from 'viem'
 import { generateNonce } from 'siwe'
 import { createWallet } from './controllers/walletController.js';
 const app = express()
-const PORT = 3001
+const PORT = 3002
 const JWT_SECRET = 'your-secret'
 const nonces = new Map()
 app.use(express.json())
+import { PrismaClient } from '@prisma/client'
+import { ethers } from 'ethers' 
+
 
 const provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`)
 

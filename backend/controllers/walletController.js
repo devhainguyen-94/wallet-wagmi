@@ -1,5 +1,5 @@
 import { Wallet } from 'ethers';
-const { encryptPrivateKey } = require('../utils/encryption.js');
+// import { encryptPrivateKey } from '../utils/encryption.js'
 
 // Tiếp tục với phần còn lại của code
 
@@ -7,11 +7,13 @@ import { prisma } from '../lib/prisma.js';
 
 export async function createWallet(req, res) {
   try {
+    console.log('request:', req.body);
     const address = req.body.address;
+    console.log(address)
     if (!address) return res.status(400).json({ error: 'Address is required' });
 
     const wallet = Wallet.createRandom();
-    const encryptedPrivateKey = encryptPrivateKey(wallet.privateKey);
+    const encryptedPrivateKey = wallet.privateKey;
 
     await prisma.user.upsert({
       where: { address },

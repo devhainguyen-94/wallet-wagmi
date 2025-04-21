@@ -1,16 +1,8 @@
-import {
-  WagmiConfig,
-  createConfig,
-  useSendTransaction,
-  usePrepareSendTransaction,
-} from 'wagmi'
-import { mainnet } from 'wagmi/chains'
-import { publicProvider } from 'wagmi/providers/public'
-import { ConnectKitProvider, getDefaultConfig } from 'connectkit'
-import { parseEther } from 'viem'
-
-import { useAuth } from './hooks/useAuth'
-import React, { useState } from 'react'
+import React from 'react';
+import { WagmiConfig, createConfig } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
+import { getDefaultConfig } from 'connectkit';
+import { useAuth } from './hooks/useAuth';
 
 const config = createConfig(
   getDefaultConfig({
@@ -18,125 +10,63 @@ const config = createConfig(
     walletConnectProjectId: 'f637276fa2040a313cb65c70e23c37f2',
     appName: 'Wagmi Auth',
   })
-)
+);
 
 function App() {
-  const { login, loading, address } = useAuth()
+  const { login, loading, address } = useAuth();
 
-  // ----------- Client-Side Send (via Wagmi) ----------
-  const [to, setTo] = useState('')
-  const [amount, setAmount] = useState('0.01')
-
-  const { config: txConfig } = usePrepareSendTransaction({
-    to,
-    value: parseEther(amount || '0'),
-    enabled: Boolean(to),
-  })
-
-  const { sendTransaction, isLoading: isSending, isSuccess, error } = useSendTransaction(txConfig)
-
-  const handleSend = () => {
-    if (sendTransaction) sendTransaction()
-  }
-
-  // ----------- Server-Side Send (via Backend) ------------
-  const [serverTo, setServerTo] = useState('')
-  const [serverAmount, setServerAmount] = useState('0.01')
-  const [serverResult, setServerResult] = useState(null)
-  const [serverLoading, setServerLoading] = useState(false)
-
-  const handleServerSend = async () => {
-    setServerLoading(true)
-    setServerResult(null)
-
+  const handleCreateWallet = async () => {
     try {
-      const res = await fetch('http://localhost:3001/send-transaction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fromAddress: address,
-          toAddress: serverTo,
-          amount: serverAmount,
-        }),
-      })
+      if (!address) {
+        alert('Please connect your wallet first.');
+        return;
+      }
 
-      const data = await res.json()
-      if (data.txHash) {
-        setServerResult({ success: true, txHash: data.txHash })
+      const res = await fetch('http://localhost:3002/api/auth/create-wallet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ address }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(`✅ Wallet created: ${data.walletAddress}`);
+        console.log(data);
       } else {
-        setServerResult({ success: false, error: data.error || data.details })
+        alert(`❌ Failed to create wallet: ${data.error}`);
+        console.error(data);
       }
     } catch (err) {
-      setServerResult({ success: false, error: err.message })
+      console.error('💥 Error calling create-wallet:', err);
     }
-
-    setServerLoading(false)
-  }
+  };
 
   return (
-    <div style={{ padding: 24, maxWidth: 600, margin: 'auto' }}>
+    <div style={{ padding: 24 }}>
       <h1>Login with Wallet</h1>
       <p>Address: {address}</p>
       <button onClick={login} disabled={loading}>
         {loading ? 'Logging in...' : 'Login'}
       </button>
+      <p>Click the button below to create your wallet.</p>
 
-      <hr style={{ margin: '24px 0' }} />
+      <input
+        type="password"
+        placeholder="Enter your private key"
+        style={{ marginTop: 16, padding: 8, width: '100%' }}
+      />
 
-      {/* Client-Side Transaction */}
-      <h2>Send ETH (Client-Side)</h2>
-      <input
-        placeholder="Recipient address"
-        value={to}
-        onChange={(e) => setTo(e.target.value)}
-        style={{ display: 'block', marginBottom: 12, padding: 8, width: '100%' }}
-      />
-      <input
-        placeholder="Amount in ETH"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        style={{ display: 'block', marginBottom: 12, padding: 8, width: '100%' }}
-      />
-      <button onClick={handleSend} disabled={!sendTransaction || isSending}>
-        {isSending ? 'Sending...' : 'Send Transaction (Client)'}
+      <button
+        onClick={handleCreateWallet}
+        style={{ marginTop: 16, padding: 8, width: '100%' }}
+      >
+        Create Wallet
       </button>
-
-      {isSuccess && <p style={{ color: 'green' }}>✅ Transaction sent (client)!</p>}
-      {error && <p style={{ color: 'red' }}>{error.message}</p>}
-
-      <hr style={{ margin: '24px 0' }} />
-
-      {/* Server-Side Transaction */}
-      <h2>Send ETH (Server-Side)</h2>
-      <input
-        placeholder="Recipient address"
-        value={serverTo}
-        onChange={(e) => setServerTo(e.target.value)}
-        style={{ display: 'block', marginBottom: 12, padding: 8, width: '100%' }}
-      />
-      <input
-        placeholder="Amount in ETH"
-        value={serverAmount}
-        onChange={(e) => setServerAmount(e.target.value)}
-        style={{ display: 'block', marginBottom: 12, padding: 8, width: '100%' }}
-      />
-      <button onClick={handleServerSend} disabled={serverLoading || !address}>
-        {serverLoading ? 'Sending...' : 'Send Transaction (Server)'}
-      </button>
-
-      {serverResult?.success && (
-        <p style={{ color: 'green' }}>
-          ✅ Transaction sent from server! Hash: <br />
-          <a href={`https://sepolia.etherscan.io/tx/${serverResult.txHash}`} target="_blank" rel="noreferrer">
-            {serverResult.txHash}
-          </a>
-        </p>
-      )}
-      {serverResult?.error && (
-        <p style={{ color: 'red' }}>❌ Error: {serverResult.error}</p>
-      )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

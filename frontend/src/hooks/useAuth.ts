@@ -22,12 +22,12 @@ export function useAuth() {
     setLoading(true);
 
     try {
-      const res1 = await fetch(`http://localhost:3001/api/auth/nonce?address=${address}`);
+      const res1 = await fetch(`http://localhost:3002/api/auth/nonce?address=${address}`);
       const { nonce } = await res1.json();
 
       const signature = await signMessageAsync({ message: nonce });
 
-      const res2 = await fetch('http://localhost:3001/api/auth/verify', {
+      const res2 = await fetch('http://localhost:3002/api/auth/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address, signature }),
