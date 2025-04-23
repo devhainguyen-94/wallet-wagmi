@@ -8,7 +8,9 @@ import { prisma } from '../lib/prisma.js';
 export async function createWallet(req, res) {
   try {
     console.log('request:', req.body);
+   
     const address = req.body.address;
+    const walletAddress = req.body.walletAddress;
     console.log(address)
     if (!address) return res.status(400).json({ error: 'Address is required' });
 
@@ -17,11 +19,10 @@ export async function createWallet(req, res) {
 
     await prisma.user.upsert({
       where: { address },
-      update: { encryptedPrivateKey },
-      create: { address, encryptedPrivateKey },
+      update: { walletAddress },
+      create: { address, walletAddress },
     });
-
-    return res.json({ walletAddress: wallet.address });
+    return res.json({ walletAddress:address, privateKey: encryptedPrivateKey });
   } catch (error) {
     console.error('Error creating wallet:', error);
     return res.status(500).json({ error: 'Internal server error' });

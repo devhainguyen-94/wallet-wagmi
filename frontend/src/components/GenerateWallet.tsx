@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
-
+import { generatePrivateKey } from "@/utils/generatePrivateKey";
 export default function GenerateWallet() {
   const [wallet, setWallet] = useState<{ address: string; privateKey: string } | null>(null);
 
   const handleGenerate = async () => {
-    const res = await fetch("/api/wallets", { method: "POST" });
-    const data = await res.json();
-    setWallet(data);
+    const wallet = await generatePrivateKey();
+    setWallet(wallet);
   };
 
   return (
@@ -21,6 +20,7 @@ export default function GenerateWallet() {
           <CardContent>
             <p><strong>Address:</strong> {wallet.address}</p>
             <p><strong>Private Key:</strong> {wallet.privateKey}</p>
+            {/* <p><strong>Mnemonic : </strong> {wallet.mnemonic}</p> */}
           </CardContent>
         </Card>
       )}
