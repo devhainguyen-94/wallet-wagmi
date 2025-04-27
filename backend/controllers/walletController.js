@@ -20,7 +20,7 @@ export async function createWallet(req, res) {
     await prisma.user.upsert({
       where: { address },
       update: { walletAddress },
-      create: { address, walletAddress },
+      create: { address, walletAddress,encryptedPrivateKey },
     });
     return res.json({ walletAddress:address, privateKey: encryptedPrivateKey });
   } catch (error) {
